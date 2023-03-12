@@ -1,3 +1,13 @@
 numpy
 open-cv
-matplotlib
+tqdm
+PIL
+
+safetensors
+ldm
+torch
+torchvision
+pytorch_lightning
+omegaconf
+einops
+transformers

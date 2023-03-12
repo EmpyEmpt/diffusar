@@ -1,0 +1,22 @@
+models:
+  original_path: "./models/v2-1_512-ema-pruned.ckpt"
+  control_path: "./models/control_sd21_ini.ckpt"
+
+dataset:
+  raw_path: "./data/raw/"
+  processed_path: "./data/processed/"
+  annotations_filename: "prompt.json"
+
+training:
+  resume_path: "./models/control_sd21_ini.ckpt"
+  batch_size: 4
+  logger_freq: 300
+  learning_rate: 1e-5
+  sd_locked: True
+  only_mid_control: False
+  precision: 32
+
+wandb_logger:
+  use: True
+  project_name: "Diffusar"
+  log_model: True
