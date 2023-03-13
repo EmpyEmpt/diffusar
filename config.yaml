@@ -1,22 +1,24 @@
 models:
-  original_path: "./models/v2-1_512-ema-pruned.ckpt"
-  control_path: "./models/control_sd21_ini.ckpt"
+  download_url: https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt
+  original_path: "./models/v2-1-pruned-ema.ckpt"
+  control_path: "./models/control_v2-1_ini.ckpt"
+  cldm_path: "./models/cldm_v21.yaml"
 
 dataset:
-  raw_path: "./data/raw/"
-  processed_path: "./data/processed/"
-  annotations_filename: "prompt.json"
+  images_path: "./data/images/"
+  annotations_path: "./data/prompt.json"
 
 training:
-  resume_path: "./models/control_sd21_ini.ckpt"
   batch_size: 4
   logger_freq: 300
   learning_rate: 1e-5
   sd_locked: True
   only_mid_control: False
   precision: 32
+  accumulate_grad_batches: False
 
-wandb_logger:
+wandb:
   use: True
   project_name: "Diffusar"
   log_model: True
+  log: "all"

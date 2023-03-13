@@ -7,35 +7,46 @@ from cldm.logger import ImageLogger
 from cldm.model import create_model, load_state_dict
 from pytorch_lightning.loggers import WandbLogger
 
+import yaml
 
-# TODO: load config from yaml
 # Configs
-resume_path = './models/control_sd21_ini.ckpt'
-batch_size = 4
-logger_freq = 300
-learning_rate = 1e-5
-sd_locked = True
-only_mid_control = False
+config = yaml.safe_load('../../config.yaml')
+
+resume_path = config['models']['control_path']
+batch_size = config['training']['batch_size']
+logger_freq = config['training']['logger_freq']
+learning_rate = config['training']['learning_rate']
+sd_locked = config['training']['sd_locked']
+only_mid_control = config['training']['only_mid_control']
+precision = config['training']['precision']
+accumulate_grad_batches = config['training']['accumulate_grad_batches']
 
 
 # First use cpu to load models. Pytorch Lightning will automatically move it to GPUs.
-model = create_model('./models/cldm_v21.yaml').cpu()
+model = create_model(config['models']['cldm_path']).cpu()
 model.load_state_dict(load_state_dict(resume_path, location='cpu'))
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
 model.only_mid_control = only_mid_control
 
-# TODO: wandb logger args from config
-wandb_logger = WandbLogger(log_model=True)
-wandb_logger.watch(model, log="all", log_freq=logger_freq)
+if config['wandb']['use']:
+    logger = WandbLogger(
+        log_model=config['wandb']['log_model'], project=config['wandb']['project_name'])
+    logger.watch(model, log=config['wandb']['log'], log_freq=logger_freq)
 
-# Misc
+else:
+    logger = ImageLogger(batch_frequency=logger_freq)
+
+
+# Dataset and trainer init
 dataset = MyDataset()
 dataloader = DataLoader(dataset, num_workers=0,
                         batch_size=batch_size, shuffle=True)
-logger = ImageLogger(batch_frequency=logger_freq)
-trainer = pl.Trainer(logger=wandb_logger, gpus=1,
-                     precision=32, callbacks=[logger])
+
+trainer = pl.Trainer(logger=logger,
+                     gpus=1,
+                     precision=precision,
+                     accumulate_grad_batches=accumulate_grad_batches)
 
 
 # Train!
