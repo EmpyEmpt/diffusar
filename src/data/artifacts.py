@@ -1,14 +1,34 @@
 import numpy as np
 import cv2
 
+rnd = {
+    'int': np.random.randint,
+    'float': np.random.uniform
+}
 
-def apply_ghosting(source: np.ndarray, trail_length: int = 10, trail_decay: float = 0.8, shift_x: int = 5, shift_y: int = 5) -> np.ndarray:
+
+def random_arguments(args):
+    data = []
+    for i in args:
+        val = rnd[i[0].__name__]
+        val = val(i[1], i[2])
+        data.append(val)
+    if len(data) == 1:
+        return data[0]
+    return data
+
+
+def apply_ghosting(source: np.ndarray, random_args: bool = True, trail_length: int = 10, trail_decay: float = 0.8, shift_x: int = 5, shift_y: int = 5) -> np.ndarray:
     """
     Applies ghosting artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     trail_length: int, default: 10
         Controls the amount of 'ghost' images 
@@ -23,6 +43,16 @@ def apply_ghosting(source: np.ndarray, trail_length: int = 10, trail_decay: floa
     -------
     processed_image: np.ndarray
     """
+    if random_args:
+        trail_length, trail_decay, shift_x, shift_y = random_arguments(
+            [
+                [int, 3, 30],
+                [float, 0.3, 0.9],
+                [int, 3, 20],
+                [int, 3, 20]
+            ]
+        )
+
     height, width, channels = source.shape
     ghosted_img = np.zeros((height, width, channels), np.float32)
 
@@ -44,13 +74,17 @@ def apply_ghosting(source: np.ndarray, trail_length: int = 10, trail_decay: floa
     return processed_image
 
 
-def apply_distortion(source: np.ndarray, displacement: int = 10) -> np.ndarray:
+def apply_distortion(source: np.ndarray, random_args: bool = True, displacement: int = 10) -> np.ndarray:
     """
     Applies distortion artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     displacement: int, default: 10
 
@@ -59,6 +93,13 @@ def apply_distortion(source: np.ndarray, displacement: int = 10) -> np.ndarray:
     processed_image: np.ndarray
 
     """
+    if random_args:
+        displacement = random_arguments(
+            [
+                [int, 5, 30]
+            ]
+        )
+
     height, width, channels = source.shape
     displacement_map = np.random.uniform(-displacement,
                                          displacement, size=(height, width, 2))
@@ -75,13 +116,17 @@ def apply_distortion(source: np.ndarray, displacement: int = 10) -> np.ndarray:
     return processed_image
 
 
-def apply_color_banding(source: np.ndarray, levels: int = 8) -> np.ndarray:
+def apply_color_banding(source: np.ndarray, random_args: bool = True, levels: int = 8) -> np.ndarray:
     """
     Applies color banding artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     levels: int, default: 8
 
@@ -90,6 +135,14 @@ def apply_color_banding(source: np.ndarray, levels: int = 8) -> np.ndarray:
     processed_image: np.ndarray
 
     """
+
+    if random_args:
+        levels = random_arguments(
+            [
+                [int, 4, 32]
+            ]
+        )
+
     # height, width, channels = img.shape
     processed_image = np.uint8(
         np.round(source / (256 / levels))
@@ -98,7 +151,7 @@ def apply_color_banding(source: np.ndarray, levels: int = 8) -> np.ndarray:
     return processed_image
 
 
-def apply_silk_screen_effect(source: np.ndarray, levels: int = 8, threshold: int = 128) -> np.ndarray:
+def __apply_silk_screen_effect(source: np.ndarray, levels: int = 8, threshold: int = 128) -> np.ndarray:
     """
     Applies silk screen artifact to an image
 
@@ -123,13 +176,17 @@ def apply_silk_screen_effect(source: np.ndarray, levels: int = 8, threshold: int
     return processed_image
 
 
-def apply_rainbow_effect(source: np.ndarray, strength: int = 10) -> np.ndarray:
+def apply_rainbow_effect(source: np.ndarray, random_args: bool = True, strength: int = 10) -> np.ndarray:
     """
     Applies rainbow artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     strength: int, default: 10
 
@@ -138,6 +195,14 @@ def apply_rainbow_effect(source: np.ndarray, strength: int = 10) -> np.ndarray:
     processed_image: np.ndarray
 
     """
+
+    if random_args:
+        strength = random_arguments(
+            [
+                [int, 2, 20],
+            ]
+        )
+
     height, width, channels = source.shape
 
     hue_map = np.zeros((height, width, 3), dtype=np.float32)
@@ -153,13 +218,17 @@ def apply_rainbow_effect(source: np.ndarray, strength: int = 10) -> np.ndarray:
     return processed_image
 
 
-def apply_noise(source: np.ndarray, noise_type='gaussian', mean: float = 0, var: float = 0.001) -> np.ndarray:
+def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussian', mean: float = 0, var: float = 0.001) -> np.ndarray:
     """
     Applies rainbow artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     noise_type: str, default: 'gaussian'
         Controls type of noise to be applied
@@ -173,6 +242,15 @@ def apply_noise(source: np.ndarray, noise_type='gaussian', mean: float = 0, var:
     processed_image: np.ndarray
 
     """
+
+    if random_args:
+        mean, var = random_arguments(
+            [
+                [float, 0, 128],
+                [float, 0, 64]
+            ]
+        )
+
     processed_image = source.copy()
     if noise_type == 'gaussian':
         noise = np.random.normal(mean, var ** 0.5, source.shape)
@@ -181,13 +259,17 @@ def apply_noise(source: np.ndarray, noise_type='gaussian', mean: float = 0, var:
     return processed_image
 
 
-def apply_screen_tearing(source: np.ndarray, strength: float = 0.5, direction='horizontal') -> np.ndarray:
+def apply_screen_tearing(source: np.ndarray, random_args: bool = True, strength: float = 0.5, direction='horizontal') -> np.ndarray:
     """
     Applies rainbow artifact to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     direction: str, default: 'gaussian'
         Controls the direction of the tier
@@ -200,6 +282,14 @@ def apply_screen_tearing(source: np.ndarray, strength: float = 0.5, direction='h
     processed_image: np.ndarray
 
     """
+
+    if random_args:
+        strength = random_arguments(
+            [
+                [float, 0.1, 0.9],
+            ]
+        )
+        direction = np.random.choice(['horizontal', 'vertical'])
 
     height, width, channels = source.shape
     processed_image = np.zeros(source.shape, dtype=np.uint8)
@@ -218,13 +308,17 @@ def apply_screen_tearing(source: np.ndarray, strength: float = 0.5, direction='h
     return processed_image
 
 
-def apply_compression_artifact(source: np.ndarray, quality: int = 50) -> np.ndarray:
+def apply_compression_artifact(source: np.ndarray, random_args: bool = True, quality: int = 50) -> np.ndarray:
     """
     Applies jpeg compression to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     quality: int, default: 50
 
@@ -233,6 +327,12 @@ def apply_compression_artifact(source: np.ndarray, quality: int = 50) -> np.ndar
     processed_image: np.ndarray
 
     """
+    if random_args:
+        quality = random_arguments(
+            [
+                [int, 10, 90],
+            ]
+        )
 
     params = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
     _, enc = cv2.imencode('.jpg', source, params)
@@ -241,13 +341,17 @@ def apply_compression_artifact(source: np.ndarray, quality: int = 50) -> np.ndar
     return processed_image
 
 
-def apply_moire_pattern(source: np.ndarray, strength: int = 50, wavelength: int = 100, angle: int = 45, grid_size: int = 10) -> np.ndarray:
+def apply_moire_pattern(source: np.ndarray, random_args: bool = True, strength: int = 50, wavelength: int = 100, angle: int = 45, grid_size: int = 10) -> np.ndarray:
     """
     Applies moire pattern to an image
 
     Parameters
     ----------
     source : source image as ndarray
+
+    random_args: book, default: True
+        Randomizes arguments for this function call
+        Overwrites all the other passed arguments
 
     strength: int, default: 50
 
@@ -262,6 +366,16 @@ def apply_moire_pattern(source: np.ndarray, strength: int = 50, wavelength: int 
     processed_image: np.ndarray
 
     """
+    if random_args:
+        strength, wavelength, angle, grid_size = random_arguments(
+            [
+                [int, 10, 100],
+                [int, 5, 85],
+                [int, 0, 90],
+                [int, 5, 30]
+            ]
+        )
+
     height, width = source.shape[:2]
 
     x, y = np.meshgrid(np.linspace(0, width, grid_size),
