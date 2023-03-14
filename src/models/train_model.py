@@ -10,7 +10,7 @@ from pytorch_lightning.loggers import WandbLogger
 import yaml
 
 # Configs
-config = yaml.safe_load('../../config.yaml')
+config = yaml.safe_load(open('./config.yaml'))
 
 resume_path = config['models']['control_path']
 batch_size = config['training']['batch_size']
