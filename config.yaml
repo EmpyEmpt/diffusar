@@ -5,8 +5,9 @@ models:
   cldm_path: "./models/cldm_v21.yaml"
 
 dataset:
-  images_path: "./data/images/"
+  images_dir: "./data/images/"
   annotations_path: "./data/prompt.json"
+  coco_path: "./data/captions_val2014.json"
 
 training:
   batch_size: 4
