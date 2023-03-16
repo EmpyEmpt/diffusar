@@ -1,0 +1,1 @@
+python .\src\models\tool_add_control_sd21.py .\models\v2-1_512-ema-pruned.ckpt .\models\control_v2-1_ini.ckpt
