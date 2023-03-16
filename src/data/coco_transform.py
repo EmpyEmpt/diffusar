@@ -7,6 +7,22 @@ import json
 import yaml
 import sys
 import os
+import argparse
+
+
+def str2bool(arg: str) -> bool:
+    if arg in ['True', 't', 'T', '+']:
+        return True
+    if arg in ['False', 'f', 'F', '-']:
+        return False
+    return argparse.ArgumentTypeError('Boolean value expected.')
+
+
+parser = argparse.ArgumentParser(description='COCO dataset transformation')
+parser.add_argument('--download', '-d', type=str2bool,
+                    default=False, required=False, metavar=('download'))
+parser.add_argument('--max_amount', '-m', type=int,
+                    default=sys.maxsize, required=False, metavar=('max_amount'))
 
 config = yaml.safe_load(open('./config.yaml'))
 
@@ -17,14 +33,14 @@ annotations_path = config['dataset']['annotations_path']
 coco = COCO(coco_path)
 
 
-def transform_coco(download=True):
+def transform_coco(max_amount: int, download: bool = False) -> None:
     """
     Transform COCO dataset into this repos data format
     Downloads images if specified
     """
     data = []
 
-    for i in coco.anns:
+    for idx, i in enumerate(coco.anns):
         image_id = coco.anns[i]['image_id']
         caption = coco.anns[i]['caption']
 
@@ -51,16 +67,18 @@ def transform_coco(download=True):
             'url': url
         })
 
+        if idx > max_amount:
+            break
+
     print('Sacing data...')
     data = {"tags": data}
 
     with open(annotations_path, 'w') as outfile:
         json.dump(data, outfile)
-    print(f'Done! {len(data)} image-caption pairs in total')
+    print(f'Done! {len(data["tags"])} image-caption pairs in total')
 
 
 if __name__ == '__main__':
-    download = False
-    if len(sys.argv) > 1:
-        download = True
-    transform_coco(download=download)
+    args = parser.parse_args()
+
+    transform_coco(download=args.download, max_amount=args.max_amount)

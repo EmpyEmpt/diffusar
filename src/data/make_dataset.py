@@ -2,6 +2,7 @@ import json
 import cv2
 import numpy as np
 import artifacts as ar
+from PIL import Image
 
 from torch.utils.data import Dataset
 
@@ -18,14 +19,15 @@ random_artifact = [
 
 
 class MyDataset(Dataset):
-    def __init__(self, dataset_path: str, annotations_path: str, use_prompts: bool = False, dynamic_source=True):
+    def __init__(self, images_path: str, annotations_path: str, use_prompts: bool = False, dynamic_source: bool = True, image_size: int = 512):
         self.data = []
         self.use_prompts = use_prompts
-        self.dataset_path = dataset_path
+        self.images_path = images_path
         self.annotations_path = annotations_path
         self.dynamic_source = dynamic_source
+        self.image_size = image_size
 
-        with open(self.dataset_path + self.annotations_path, 'rt') as f:
+        with open(self.annotations_path, 'r') as f:
             file = json.load(f)['tags']
             for dataline in file:
                 self.data.append(dataline)
@@ -44,15 +46,17 @@ class MyDataset(Dataset):
             prompt = item['prompt']
 
         # loading images
-        source = cv2.imread(self.dataset_path + source_filename)
-        source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
+        target = cv2.imread(self.images_path + target_filename)
+        target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+        target = self.__resize_with_pad(target, self.image_size)
 
-        if not self.dynamic_source:
-            target = cv2.imread(self.dataset_path + target_filename)
-            target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+        if self.dynamic_source:
+            source = np.random.choice(
+                random_artifact)(target, random_args=True)
         else:
-            target = np.random.choice(
-                random_artifact(source, random_args=True))
+            source = cv2.imread(self.images_path + source_filename)
+            source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
+            source = self.__resize_with_pad(source, self.image_size)
 
         # Normalize source images to [0, 1].
         source = source.astype(np.float32) / 255.0
@@ -61,3 +65,20 @@ class MyDataset(Dataset):
         target = (target.astype(np.float32) / 127.5) - 1.0
 
         return dict(jpg=target, txt=prompt, hint=source)
+
+    def __resize_with_pad(self, image, desired_size):
+        im = Image.fromarray(image)
+        # im = Image.open(im_pth)
+        old_size = im.size
+
+        ratio = float(desired_size)/max(old_size)
+        new_size = tuple([int(x*ratio) for x in old_size])
+
+        im = im.resize(new_size, Image.Resampling.LANCZOS)
+
+        new_im = Image.new("RGB", (desired_size, desired_size))
+        new_im.paste(im, ((desired_size-new_size[0])//2,
+                          (desired_size-new_size[1])//2))
+
+        image = np.array(new_im)
+        return image
