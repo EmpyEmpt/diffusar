@@ -31,7 +31,7 @@ dataloader_workers: int         = config['training']['dataloader_workers']
 
 # First use cpu to load models. 
 model = create_model(config['models']['cldm_path']).cpu()
-model.load_state_dict(load_state_dict(resume_path, location='cuda'))
+model.load_state_dict(load_state_dict(resume_path, location='cpu'))
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
 model.only_mid_control = only_mid_control
