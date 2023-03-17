@@ -29,9 +29,9 @@ images_path: str                = config['dataset']['images_dir']
 annotations_path: str           = config['dataset']['annotations_path']
 dataloader_workers: int         = config['training']['dataloader_workers']
 
-# First use cpu to load models. Pytorch Lightning will automatically move it to GPUs.
+# First use cpu to load models. 
 model = create_model(config['models']['cldm_path']).cpu()
-model.load_state_dict(load_state_dict(resume_path, location='cpu'))
+model.load_state_dict(load_state_dict(resume_path, location='cuda'))
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
 model.only_mid_control = only_mid_control
