@@ -30,7 +30,7 @@ annotations_path: str           = config['dataset']['annotations_path']
 dataloader_workers: int         = config['training']['dataloader_workers']
 
 # First use cpu to load models. 
-model = create_model(config['models']['cldm_path']).cpu()
+model = create_model(config['models']['cldm_path'])
 model.load_state_dict(load_state_dict(resume_path, location='cuda'))
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
