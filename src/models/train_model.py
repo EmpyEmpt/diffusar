@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from cldm.logger import ImageLogger
 from cldm.model import create_model, load_state_dict
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 import yaml
 
@@ -23,6 +24,8 @@ sd_locked: bool                 = config['training']['sd_locked']
 only_mid_control: bool          = config['training']['only_mid_control']
 precision: int                  = config['training']['precision']
 accumulate_grad_batches: int    = config['training']['accumulate_grad_batches']
+ckpt_freq: int                  = config['training']['ckpt_freq']
+ckpt_dir: str                   = config['training']['ckpt_dir']
 
 # Dataset
 images_path: str                = config['dataset']['images_dir']
@@ -38,25 +41,40 @@ model.only_mid_control = only_mid_control
 
 if config['wandb']['use']:
     logger = WandbLogger(
-        log_model=config['wandb']['log_model'], project=config['wandb']['project_name'], name=config['wandb']['name'])
+        log_model=config['wandb']['log_model'], 
+        project=config['wandb']['project_name'], 
+        name=config['wandb']['name'])
+    
     logger.watch(model, log=config['wandb']['log'], log_freq=logger_freq)
 
 else:
     logger = ImageLogger(batch_frequency=logger_freq)
 
+# Callback
+checkpoint_callback = ModelCheckpoint(
+    dirpath=ckpt_dir,
+    monitor='loss',
+    verbose=False,
+    save_last=True,
+    save_top_k=-1,
+    save_weights_only=True,
+    every_n_epochs=ckpt_freq)
 
 # Dataset and trainer init
 dataset = MyDataset(images_path, annotations_path)
-dataloader = DataLoader(dataset, num_workers=dataloader_workers,
-                        batch_size=batch_size, shuffle=True)
+dataloader = DataLoader(
+    dataset, 
+    num_workers=dataloader_workers,
+    batch_size=batch_size, 
+    shuffle=True)
 
 
-trainer = pl.Trainer(logger=logger,
-                     accelerator='gpu',
-                     gpus = 1,
-                     precision=precision,
-                    #  accumulate_grad_batches=accumulate_grad_batches
-                     )
+trainer = pl.Trainer(
+    logger=logger,
+    accelerator='gpu',
+    gpus = 1,
+    precision=precision,
+    callbacks=checkpoint_callback)
 
 
 # Train!

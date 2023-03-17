@@ -10,7 +10,9 @@ dataset:
   coco_path: "./data/captions_val2014.json"
 
 training:
-  batch_size: 4
+  ckpt_freq: 10
+  ckpt_dir: './models/'
+  batch_size: 16
   logger_freq: 300
   learning_rate: 1e-5
   sd_locked: True
