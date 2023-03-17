@@ -53,7 +53,7 @@ dataloader = DataLoader(dataset, num_workers=dataloader_workers,
 
 trainer = pl.Trainer(logger=logger,
                      accelerator='gpu',
-                     auto_select_gpus = True,
+                     gpus = 1,
                      precision=precision,
                     #  accumulate_grad_batches=accumulate_grad_batches
                      )
