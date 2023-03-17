@@ -1,5 +1,3 @@
-from share import *
-
 # I want to kill myself
 import sys
 sys.path.insert(0, './src/data')

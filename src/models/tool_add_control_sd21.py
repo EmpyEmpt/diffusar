@@ -1,5 +1,4 @@
 from cldm.model import create_model
-from share import *
 import torch
 import sys
 import os
