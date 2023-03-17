@@ -52,7 +52,7 @@ dataloader = DataLoader(dataset, num_workers=dataloader_workers,
 
 
 trainer = pl.Trainer(logger=logger,
-                    #  accelerator='cpu',
+                     accelerator='gpu',
                      precision=precision,
                     #  accumulate_grad_batches=accumulate_grad_batches
                      )
