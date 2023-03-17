@@ -29,7 +29,7 @@ images_path: str                = config['dataset']['images_dir']
 annotations_path: str           = config['dataset']['annotations_path']
 dataloader_workers: int         = config['training']['dataloader_workers']
 
-# First use cpu to load models. Pytorch Lightning will automatically move it to GPUs.
+# First use cpu to load models. 
 model = create_model(config['models']['cldm_path']).cpu()
 model.load_state_dict(load_state_dict(resume_path, location='cpu'))
 model.learning_rate = learning_rate
@@ -52,7 +52,8 @@ dataloader = DataLoader(dataset, num_workers=dataloader_workers,
 
 
 trainer = pl.Trainer(logger=logger,
-                    #  accelerator='cpu',
+                     accelerator='gpu',
+                     gpus = 1,
                      precision=precision,
                     #  accumulate_grad_batches=accumulate_grad_batches
                      )
