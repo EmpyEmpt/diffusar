@@ -19,7 +19,7 @@ config = yaml.safe_load(open('./config.yaml'))
 
 # Model
 resume_path: str                = config['models']['control_path']
-final_path: str                 = config['modles']['final_path']
+final_path: str                 = config['models']['final_path']
 
 # Training
 batch_size: int                 = config['training']['batch_size']
