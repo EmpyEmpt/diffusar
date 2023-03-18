@@ -15,7 +15,7 @@ training:
   learning_rate: 1e-5
   sd_locked: True
   only_mid_control: False
-  precision: 32
+  precision: 16
   accumulate_grad_batches: 4
   dataloader_workers: 1
 
