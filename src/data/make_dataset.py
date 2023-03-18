@@ -18,7 +18,10 @@ random_artifact = [
 ]
 
 
-class MyDataset(Dataset):
+class ArtifactDataset(Dataset):
+    """
+    Dataset for training Diffusar
+    """
     def __init__(self, images_path: str, annotations_path: str, use_prompts: bool = False, dynamic_source: bool = True, image_size: int = 512):
         self.data = []
         self.use_prompts = use_prompts
@@ -51,8 +54,7 @@ class MyDataset(Dataset):
         target = self.__resize_with_pad(target, self.image_size)
 
         if self.dynamic_source:
-            source = np.random.choice(
-                random_artifact)(target, random_args=True)
+            source = np.random.choice(random_artifact)(target, random_args=True)
         else:
             source = cv2.imread(self.images_path + source_filename)
             source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
@@ -68,7 +70,6 @@ class MyDataset(Dataset):
 
     def __resize_with_pad(self, image, desired_size):
         im = Image.fromarray(image)
-        # im = Image.open(im_pth)
         old_size = im.size
 
         ratio = float(desired_size)/max(old_size)

@@ -3,6 +3,7 @@ models:
   original_path: "./models/v2-1-pruned-ema.ckpt"
   control_path: "./models/control_v2-1_ini.ckpt"
   cldm_path: "./models/cldm_v21.yaml"
+  final_path: "./models/final_model.pt"
 
 dataset:
   images_dir: "./data/images/"
@@ -10,16 +11,26 @@ dataset:
   coco_path: "./data/captions_val2014.json"
 
 training:
-  ckpt_freq: 10
-  ckpt_dir: './models/'
   batch_size: 16
-  logger_freq: 300
   learning_rate: 1e-5
   sd_locked: True
   only_mid_control: False
   precision: 32
   accumulate_grad_batches: 4
   dataloader_workers: 1
+
+callbacks:
+  model_checkpoint:
+    ckpt_freq: 10
+    ckpt_dir: './models/'
+    logger_freq: 300
+    save_last: True
+    save_weight_only: False
+    save_top_k: -1
+  early_stopping:
+    monitor: 'loss'
+    patience: 5
+
 
 wandb:
   use: True
