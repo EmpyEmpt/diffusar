@@ -30,7 +30,7 @@ callbacks:
     monitor: 'train/loss'
   early_stopping:
     monitor: 'train/loss'
-    patience: 20
+    patience: 50
 
 
 wandb:
