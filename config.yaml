@@ -27,9 +27,9 @@ callbacks:
     save_last: True
     save_weight_only: False
     save_top_k: -1
-    monitor: 'loss'
+    monitor: 'train/loss'
   early_stopping:
-    monitor: 'loss'
+    monitor: 'train/loss'
     patience: 5
 
 
