@@ -22,7 +22,7 @@ training:
 callbacks:
   model_checkpoint:
     ckpt_freq: 10
-    ckpt_dir: './models/'
+    ckpt_dir: './models/ckeckpoints/'
     logger_freq: 300
     save_last: True
     save_weight_only: False
@@ -30,7 +30,7 @@ callbacks:
     monitor: 'train/loss'
   early_stopping:
     monitor: 'train/loss'
-    patience: 5
+    patience: 20
 
 
 wandb:
