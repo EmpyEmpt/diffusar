@@ -1,3 +1,4 @@
+from skimage.util import random_noise
 import numpy as np
 import cv2
 
@@ -46,8 +47,8 @@ def apply_ghosting(source: np.ndarray, random_args: bool = True, trail_length: i
     if random_args:
         trail_length, trail_decay, shift_x, shift_y = random_arguments(
             [
-                [int, 3, 30],
-                [float, 0.3, 0.9],
+                [int, 3, 20],
+                [float, 0.4, 0.9],
                 [int, 3, 20],
                 [int, 3, 20]
             ]
@@ -96,7 +97,7 @@ def apply_distortion(source: np.ndarray, random_args: bool = True, displacement:
     if random_args:
         displacement = random_arguments(
             [
-                [int, 5, 30]
+                [int, 5, 20]
             ]
         )
 
@@ -139,7 +140,7 @@ def apply_color_banding(source: np.ndarray, random_args: bool = True, levels: in
     if random_args:
         levels = random_arguments(
             [
-                [int, 4, 32]
+                [int, 8, 32]
             ]
         )
 
@@ -199,15 +200,15 @@ def apply_rainbow_effect(source: np.ndarray, random_args: bool = True, strength:
     if random_args:
         strength = random_arguments(
             [
-                [int, 2, 20],
+                [float, 0, 50],
             ]
         )
 
     height, width, channels = source.shape
 
     hue_map = np.zeros((height, width, 3), dtype=np.float32)
-    hue_map[:, :, 0] = np.linspace(0, strength, width)
-    hue_map = cv2.GaussianBlur(hue_map, (5, 5), 0)
+    hue_map[:, :, 0] = np.linspace(0, strength**1.5, width)
+    hue_map = cv2.GaussianBlur(hue_map, (3, 3), 0)
     hue_map = hue_map * 360 / strength
 
     hsv = cv2.cvtColor(source, cv2.COLOR_BGR2HSV)
@@ -216,6 +217,7 @@ def apply_rainbow_effect(source: np.ndarray, random_args: bool = True, strength:
 
     processed_image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     return processed_image
+
 
 
 def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussian', mean: float = 0, var: float = 0.001) -> np.ndarray:
@@ -246,15 +248,18 @@ def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussi
     if random_args:
         mean, var = random_arguments(
             [
-                [float, 0, 128],
-                [float, 0, 64]
+                [float, -128, 128],
+                [float, 0, 0.1]
             ]
         )
+        noise_type = np.random.choice(['gaussian', 'salt_pepper'])
 
     processed_image = source.copy()
     if noise_type == 'gaussian':
         noise = np.random.normal(mean, var ** 0.5, source.shape)
         processed_image = np.clip(source + noise, 0, 255).astype(np.uint8)
+    elif noise_type == 'salt_pepper':
+        processed_image = random_noise(source, mode='s&p', amount=0.05)
 
     return processed_image
 
@@ -271,7 +276,7 @@ def apply_screen_tearing(source: np.ndarray, random_args: bool = True, strength:
         Randomizes arguments for this function call
         Overwrites all the other passed arguments
 
-    direction: str, default: 'gaussian'
+    direction: str, default: 'horizontal'
         Controls the direction of the tier
         Can be either 'horizontal' or 'vertical'
 
@@ -296,12 +301,12 @@ def apply_screen_tearing(source: np.ndarray, random_args: bool = True, strength:
 
     if direction == 'horizontal':
         tearing_height = int(strength * height)
-        processed_image[:tearing_height, :, :] = source[:tearing_height, :, :]
-        processed_image[tearing_height:, :, :] = source[:-tearing_height, :, :]
+        processed_image[:height-tearing_height, :, :] = source[tearing_height:, :, :]
+        processed_image[height-tearing_height:, :, :] = source[:tearing_height, :, :]
     elif direction == 'vertical':
         tearing_width = int(strength * width)
-        processed_image[:, :tearing_width, :] = source[:, :tearing_width, :]
-        processed_image[:, tearing_width:, :] = source[:, :-tearing_width, :]
+        processed_image[:, :width-tearing_width, :] = source[:, tearing_width:, :]
+        processed_image[:, width-tearing_width:, :] = source[:, :tearing_width, :]
     else:
         raise ValueError("Invalid direction")
 
@@ -330,7 +335,7 @@ def apply_compression_artifact(source: np.ndarray, random_args: bool = True, qua
     if random_args:
         quality = random_arguments(
             [
-                [int, 10, 90],
+                [int, 70, 99],
             ]
         )
 
@@ -369,10 +374,10 @@ def apply_moire_pattern(source: np.ndarray, random_args: bool = True, strength: 
     if random_args:
         strength, wavelength, angle, grid_size = random_arguments(
             [
-                [int, 10, 100],
-                [int, 5, 85],
+                [int, 100, 200],
+                [int, 50, 200],
                 [int, 0, 90],
-                [int, 5, 30]
+                [int, 50, 500]
             ]
         )
 
@@ -380,8 +385,14 @@ def apply_moire_pattern(source: np.ndarray, random_args: bool = True, strength: 
 
     x, y = np.meshgrid(np.linspace(0, width, grid_size),
                        np.linspace(0, height, grid_size))
-    x = x * wavelength * np.pi / 180
-    y = y * wavelength * np.pi / 180
+    
+    angle_radians = np.radians(angle)
+    x_rot = x * np.cos(angle_radians) + y * np.sin(angle_radians)
+    y_rot = -x * np.sin(angle_radians) + y * np.cos(angle_radians)
+
+    x = x_rot * wavelength * np.pi / 180
+    y = y_rot * wavelength * np.pi / 180 
+
     moire = np.sin(x + y) * strength / 100
     moire = cv2.resize(moire, (width, height), interpolation=cv2.INTER_CUBIC)
     moire = np.repeat(moire[:, :, np.newaxis], source.shape[-1], axis=-1)
