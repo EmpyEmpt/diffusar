@@ -86,7 +86,7 @@ dataset = ArtifactDataset(images_path = images_path, annotations_path = annotati
 dataloader = DataLoader(
     dataset, 
     num_workers=dataloader_workers,
-    batch_size=(batch_size // 2) * 50, 
+    batch_size=batch_size, 
     shuffle=True)
 
 
