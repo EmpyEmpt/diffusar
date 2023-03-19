@@ -72,7 +72,7 @@ checkpoint_callback = ModelCheckpoint(
     save_last=save_last,
     save_top_k=save_top_k,
     save_weights_only=save_weight_only,
-    every_n_epochs=ckpt_freq)
+    every_n_train_steps=ckpt_freq)
 
 early_stop_callback = EarlyStopping(
     monitor=monitor_es,

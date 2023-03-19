@@ -21,7 +21,7 @@ training:
 
 callbacks:
   model_checkpoint:
-    ckpt_freq: 10
+    ckpt_freq: 3000
     ckpt_dir: './models/ckeckpoints/'
     logger_freq: 300
     save_last: True
