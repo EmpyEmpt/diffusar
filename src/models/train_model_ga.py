@@ -68,6 +68,7 @@ else:
 checkpoint_callback = ModelCheckpoint(
     dirpath=ckpt_dir,
     monitor=monitor_mc,
+    filename = '{epoch}-{step}-ga',
     verbose=False,
     save_last=save_last,
     save_top_k=save_top_k,
