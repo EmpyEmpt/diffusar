@@ -18,7 +18,7 @@ import yaml
 config = yaml.safe_load(open('./config.yaml'))
 
 # Model
-resume_path: str                = config['models']['control_path']
+resume_path: str                = './models/ckeckpoints/epoch=0-step=5999.ckpt'
 final_path: str                 = config['models']['final_path']
 
 # Training
