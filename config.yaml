@@ -8,7 +8,7 @@ models:
 dataset:
   images_dir: "./data/images/"
   annotations_path: "./data/prompt.json"
-  coco_path: "./data/captions_val2014.json"
+  coco_path: "./data/captions_train2017.json"
 
 training:
   batch_size: 16
