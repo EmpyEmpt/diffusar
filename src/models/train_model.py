@@ -5,100 +5,88 @@ sys.path.insert(0, './src/data')
 from make_dataset import ArtifactDataset
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from torch import save
 from cldm.logger import ImageLogger
 from cldm.model import create_model, load_state_dict
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+import os
 
 import yaml
 
 # Configs
 config = yaml.safe_load(open('./config.yaml'))
 
-# Model
+# Model init
 resume_path: str                = config['models']['control_path']
+if os.path.isfile(config['models']['last_path']):
+    resume_path: str            = config['models']['last_path']
 final_path: str                 = config['models']['final_path']
+cldm_path: str                  = config['models']['cldm_path']
 
 # Training
-batch_size: int                 = config['training']['batch_size']
-learning_rate: float            = float(config['training']['learning_rate'])
-sd_locked: bool                 = config['training']['sd_locked']
-only_mid_control: bool          = config['training']['only_mid_control']
-precision: int                  = config['training']['precision']
-accumulate_grad_batches: int    = config['training']['accumulate_grad_batches']
+#   Model
+sd_locked: bool                 = config['training']['model']['sd_locked']
+only_mid_control: bool          = config['training']['model']['only_mid_control']
+
+#   Dataloader
+batch_size: int                 = config['training']['dataloader']['batch_size']
+learning_rate: float            = float(config['training']['dataloader']['learning_rate'])
+
+#   Trainer config
+trainer_args: dict              = config['training']['trainer']
 
 # Callbacks
-ckpt_freq: int                  = config['callbacks']['model_checkpoint']['ckpt_freq']
-ckpt_dir: str                   = config['callbacks']['model_checkpoint']['ckpt_dir']
-logger_freq: int                = config['callbacks']['model_checkpoint']['logger_freq']
-save_last: bool                 = config['callbacks']['model_checkpoint']['save_last']
-save_weight_only: bool          = config['callbacks']['model_checkpoint']['save_weight_only']
-save_top_k: int                 = config['callbacks']['model_checkpoint']['save_top_k']
-monitor_mc: str                 = config['callbacks']['model_checkpoint']['monitor']
-
-monitor_es: str                 = config['callbacks']['early_stopping']['monitor']
-patience: int                   = config['callbacks']['early_stopping']['patience']
+ckpt_callback_args: dict        = config['callbacks']['model_checkpoint']
 
 # Dataset
 images_path: str                = config['dataset']['images_dir']
 annotations_path: str           = config['dataset']['annotations_path']
-dataloader_workers: int         = config['training']['dataloader_workers']
+dataloader_workers: int         = config['training']['dataloader']['dataloader_workers']
 
 # First use cpu to load models. 
-model = create_model(config['models']['cldm_path']).cpu()
+model = create_model(cldm_path).cpu()
 model.load_state_dict(load_state_dict(resume_path, location='cpu'))
+
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
 model.only_mid_control = only_mid_control
 
+# Creating logger callback
 if config['wandb']['use']:
     logger = WandbLogger(
         log_model=config['wandb']['log_model'], 
         project=config['wandb']['project_name'], 
         name=config['wandb']['name'])
     
-    logger.watch(model, log=config['wandb']['log'], log_freq=logger_freq)
-
+    logger.watch(model, log=config['wandb']['log'], log_freq=config['wandb']['log_freq'])
 else:
-    logger = ImageLogger(batch_frequency=logger_freq)
+    logger = ImageLogger(batch_frequency=config['wandb']['log_freq'])
 
 # Callbacks
 checkpoint_callback = ModelCheckpoint(
-    dirpath=ckpt_dir,
-    monitor=monitor_mc,
-    verbose=False,
-    save_last=save_last,
-    save_top_k=save_top_k,
-    save_weights_only=save_weight_only,
-    every_n_train_steps=ckpt_freq)
+    **ckpt_callback_args
+    )
 
-early_stop_callback = EarlyStopping(
-    monitor=monitor_es,
-    patience=patience,
-    mode='min'
-)
+# Dataloader and trainer
+dataset = ArtifactDataset(
+    images_path = images_path, 
+    annotations_path = annotations_path, 
+    use_prompts = True
+    )
 
-# Dataset and trainer init
-dataset = ArtifactDataset(images_path = images_path, annotations_path = annotations_path, use_prompts = True)
 dataloader = DataLoader(
     dataset, 
     num_workers=dataloader_workers,
     batch_size=batch_size, 
-    shuffle=True)
-
+    shuffle=True
+    )
 
 trainer = pl.Trainer(
     logger=logger,
-    accelerator='gpu',
-    gpus = 1,
-    precision=precision,
-    max_epochs = 1000,
-    callbacks=[checkpoint_callback, early_stop_callback])
+    callbacks=checkpoint_callback
+    ** trainer_args
+    )
 
 
 # Train!
 trainer.fit(model, dataloader)
-
-save(model.state_dict(), final_path)

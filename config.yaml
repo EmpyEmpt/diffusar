@@ -3,7 +3,7 @@ models:
   original_path: "./models/v2-1-pruned-ema.ckpt"
   control_path: "./models/control_v2-1_ini.ckpt"
   cldm_path: "./models/cldm_v21.yaml"
-  final_path: "./models/final_model.pt"
+  last_path: "./models/ckeckpoints/last.ckpt"
 
 dataset:
   images_dir: "./data/images/"
@@ -11,26 +11,28 @@ dataset:
   coco_path: "./data/captions_train2017.json"
 
 training:
-  batch_size: 16
-  learning_rate: 1e-5
-  sd_locked: True
-  only_mid_control: False
-  precision: 16
-  accumulate_grad_batches: 4
-  dataloader_workers: 1
+  model:
+    sd_locked: True
+    only_mid_control: False
+  dataloader:
+    batch_size: 16
+    dataloader_workers: 4
+  trainer: 
+    learning_rate: 1e-4
+    precision: 16
+    accumulate_grad_batches: 4
+    accelerator: 'gpu'
+    gpus: 1
+    max_steps: 10000
 
 callbacks:
   model_checkpoint:
-    ckpt_freq: 3000
-    ckpt_dir: './models/ckeckpoints/'
-    logger_freq: 300
+    every_n_train_steps: 3000
+    dirpath: './models/ckeckpoints/'
     save_last: True
     save_weight_only: False
     save_top_k: 3
     monitor: 'train/loss'
-  early_stopping:
-    monitor: 'train/loss'
-    patience: 50
 
 
 wandb:
@@ -39,6 +41,8 @@ wandb:
   name: "ControlNet-SD2.1"
   log_model: True
   log: "all"
+  log_freq: 300
 
 misc:
   image_size: 512
+  saving_memory: False
