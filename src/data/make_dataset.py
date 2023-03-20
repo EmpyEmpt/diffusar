@@ -14,7 +14,7 @@ random_artifact = [
     ar.apply_moire_pattern,
     ar.apply_noise,
     ar.apply_rainbow_effect,
-    ar.apply_screen_tearing
+    # ar.apply_screen_tearing
 ]
 
 
