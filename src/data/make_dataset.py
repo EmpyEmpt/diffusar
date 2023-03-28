@@ -61,8 +61,8 @@ class ArtifactDataset(Dataset):
         source = self.tfs(source)
 
         ret = {
-            'gt_image': target,
-            'cond_image': source,
+            'target_image': target,
+            'source_image': source,
             'path': source_filename
         }
         return ret
