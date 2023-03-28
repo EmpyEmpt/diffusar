@@ -3,14 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-# class mse_loss(nn.Module):
-#     def __init__(self) -> None:
-#         super().__init__()
-#         self.loss_fn = nn.MSELoss()
-#     def forward(self, output, target):
-#         return self.loss_fn(output, target)
-
-
 def mse_loss(output, target):
     return F.mse_loss(output, target)
 
