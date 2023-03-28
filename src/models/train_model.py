@@ -83,8 +83,8 @@ dataloader = DataLoader(
 
 trainer = pl.Trainer(
     logger=logger,
-    callbacks=checkpoint_callback
-    ** trainer_args
+    callbacks=checkpoint_callback,
+    **trainer_args
     )
 
 
