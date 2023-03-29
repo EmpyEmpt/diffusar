@@ -1,11 +1,9 @@
 # I want to kill myself
 import sys
 sys.path.insert(0, './src/data')
-
 from make_dataset import ArtifactDataset
 
 import yaml
-import os
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
@@ -16,24 +14,30 @@ from torch.optim import Adam
 from palette.loss import mse_loss
 from palette.network import Network
 from palette.guided_diffusion_modules.unet import UNet
-from palette.network import make_beta_schedule
-
 
 # Configs
 config = yaml.safe_load(open('./config.yaml'))
+model_config = config['training']['model_config_path']
+model_config = yaml.safe_load(open(model_config))
 
 #   Model init
-resume_path: str                = config['models']['control_path']
-if os.path.isfile(config['models']['last_path']):
-    resume_path: str            = config['models']['last_path']
-final_path: str                 = config['models']['final_path']
+paths: dict[str, str]           = config['models']
+
+unet_args: dict                 = model_config['unet_args']
+ema_scheduler: dict             = model_config['ema_scheduler_args']
+optimizer_args: dict            = model_config['optimizer_args']
+scheduler_args: dict            = model_config['scheduler_args']
+
+# Misc
+seed: int                       = config['misc']['seed']
 
 # Training
-# :p
+training_args: dict             = config['training']['training_args']
 
 #   Dataloader
 batch_size: int                 = config['training']['dataloader']['batch_size']
-learning_rate: float            = float(config['training']['dataloader']['learning_rate'])
+dataloader_workers: int         = config['training']['dataloader']['dataloader_workers']
+
 
 #   Trainer config
 # trainer_args: dict              = config['training']['trainer']
@@ -44,7 +48,6 @@ learning_rate: float            = float(config['training']['dataloader']['learni
 # Dataset
 images_path: str                = config['dataset']['images_dir']
 annotations_path: str           = config['dataset']['annotations_path']
-dataloader_workers: int         = config['training']['dataloader']['dataloader_workers']
 
 # Logger callback
 # logger = WandbLogger(
@@ -74,25 +77,11 @@ dataloader_workers: int         = config['training']['dataloader']['dataloader_w
 # Train!
 # trainer.fit(model, dataloader)
 
-# Copied from 'colorization_mirflickr25k.json'
-model_config = yaml.safe_load(open('./model_config.yaml'))
-unet_args = model_config['unet_args']
-ema_scheduler = model_config['ema_scheduler_args']
-optimizer_args = model_config['optimizer_args']
-scheduler_args = model_config['scheduler_args']
-training_args = model_config['training']
-paths = model_config['paths']
-seed = model_config['seed']
-
-def get_Unet():
+def get_unet():
     # For now it's just guided_diffusion
     # TODO: add support for sr3
     Unet = UNet(**unet_args)
     return Unet
-
-def get_beta_scheduler():
-    scheduler = make_beta_schedule(**scheduler_args)
-    return scheduler
 
 def get_loss_fn():
     # For now it's just mse_loss
@@ -100,9 +89,8 @@ def get_loss_fn():
     return mse_loss
 
 def get_network():
-    unet = get_Unet()
-    beta_scheduler = get_beta_scheduler()
-    network = Network(unet, beta_scheduler)
+    unet = get_unet()
+    network = Network(unet, scheduler_args)
     network.init_weights()
     return network
 
@@ -133,8 +121,8 @@ def main():
     # warnings.warn('You have chosen to use cudnn for accleration. torch.backends.cudnn.enabled=True')
     Util.set_seed(seed)
 
-    optimizer = get_optimizer(network, optimizer_args)
     network = get_network()
+    optimizer = get_optimizer(network, optimizer_args)
     loss_fn = get_loss_fn()
     dataloader = get_dataloader()
 
@@ -145,11 +133,14 @@ def main():
         main_loader=dataloader,
         val_loader=None,
         ema_scheduler=ema_scheduler,
+        phase = 'train',
         **training_args,
         **paths
     )
 
-    model.train()
+    # model.train()
+    model.save_everything()
+    # print(model.netG_EMA)
 
 
 if __name__ == '__main__':

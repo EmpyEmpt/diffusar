@@ -6,12 +6,7 @@ import collections
 import core.util as Util
 import os
 
-
 CustomResult = collections.namedtuple('CustomResult', 'name result')
-
-# TODO: Add paths from config 
-
-
 
 class EMA():
     def __init__(self, beta=0.9999):
@@ -31,16 +26,15 @@ class EMA():
 
 class Palette:
     def __init__(
-            self, 
-            network, 
-            loss, 
-            sample_num, 
-            task, 
-            optimizer, 
-            device, 
-            main_loader, 
-            val_loader, 
-            batch_size,
+            self,
+            network,
+            loss,
+            sample_num,
+            task,
+            optimizer,
+            device,
+            main_loader,
+            val_loader,
             max_epochs,
             max_steps,
             save_every_n_checkpoints,
@@ -50,15 +44,16 @@ class Palette:
             load_path,
             load_path_ema,
             state_save_path,
+            phase,
             ema_scheduler=None
-            ):
+    ):
         self.loss_fn = loss
         self.netG = network
         self.ema_scheduler = None
 
         self.main_loader = main_loader
         self.val_loader = val_loader
-        self.batch_size = batch_size
+        self.batch_size = main_loader.batch_size
         self.max_epochs = max_epochs
         self.max_steps = max_steps
         self.save_every_n_checkpoints = save_every_n_checkpoints
@@ -68,6 +63,7 @@ class Palette:
         self.load_path = load_path
         self.load_path_ema = load_path_ema
         self.state_save_path = state_save_path
+        self.phase = phase
 
         self.device = device
         self.schedulers = []
@@ -95,7 +91,8 @@ class Palette:
         self.optG = optimizer
         self.optimizers.append(self.optG)
         self.netG.set_loss(self.loss_fn)
-        self.netG.set_new_noise_schedule(phase=self.phase)
+        # self.netG.set_new_noise_schedule(phase=self.phase)
+        self.netG.set_new_noise_schedule(device = torch.device('cpu'))
 
     def set_input(self, data):
         ''' must use set_device in tensor '''
@@ -180,23 +177,23 @@ class Palette:
 
         self.__load_network(
             network=self.netG,
-            network_label=netG_label, 
             strict=False
         )
 
         if self.ema_scheduler is None:
             return
-        
+
         self.__load_network(
             network=self.netG_EMA,
-            ema = True,
+            ema=True,
             strict=False
         )
 
-    def __load_network(self, network, ema = False, strict=True):
-        if load_path is None or not os.path.exists(load_path):
+    def __load_network(self, network, ema=False, strict=True):
+        if self.load_path is None or not os.path.exists(self.load_path):
             return
         
+        load_path = self.load_path
         if ema:
             load_path = self.load_path_ema
 
@@ -213,15 +210,15 @@ class Palette:
         self.__save_network(network=self.netG)
 
         if self.ema_scheduler is not None:
-            self.__save_network(network=self.netG_EMA, ema = True)
+            self.__save_network(network=self.netG_EMA, ema=True)
 
         self.__save_training_state()
 
-    def __save_network(self, network, ema = False):
-
+    def __save_network(self, network, ema=False):
+        save_path = self.save_path
         if ema:
             save_path = self.save_path_ema
-        
+
         state_dict = network.state_dict()
         for key, param in state_dict.items():
             state_dict[key] = param.cpu()
@@ -230,12 +227,13 @@ class Palette:
 
     def __save_training_state(self):
 
-        assert isinstance(self.optimizers, list) and isinstance(self.schedulers, list), 'optimizers and schedulers must be a list.'
+        assert isinstance(self.optimizers, list) and isinstance(
+            self.schedulers, list), 'optimizers and schedulers must be a list.'
 
         state = {
             'epoch': self.epoch,
             'step': self.step,
-            'schedulers': [], 
+            'schedulers': [],
             'optimizers': []
         }
 
