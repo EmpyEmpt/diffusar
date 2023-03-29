@@ -23,3 +23,5 @@ Everything else is TBA!
 <https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models/issues/17>
 <https://github.com/huggingface/diffusers/tree/main/examples/instruct_pix2pix>
 <https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py>
+<https://huggingface.co/blog/annotated-diffusion>
+<https://github.com/lucidrains/denoising-diffusion-pytorch>
