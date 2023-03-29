@@ -9,18 +9,8 @@ import os
 
 CustomResult = collections.namedtuple('CustomResult', 'name result')
 
-# TODO: Add normal paths
-checkpoint_path: str
-resume_path: str
-phase: str
-batch_size: int
-max_epochs: int
-max_steps: int
-save_every_n_checkpoints: int
-val_every_n_checkpoints: int
+# TODO: Add paths from config 
 
-# which GPU training is on
-global_rank: int
 
 
 class EMA():
@@ -40,22 +30,50 @@ class EMA():
 
 
 class Palette:
-    def __init__(self, network, loss, sample_num, task, optimizers, device, main_loader, val_loader, ema_scheduler=None, **kwargs):
+    def __init__(
+            self, 
+            network, 
+            loss, 
+            sample_num, 
+            task, 
+            optimizer, 
+            device, 
+            main_loader, 
+            val_loader, 
+            batch_size,
+            max_epochs,
+            max_steps,
+            save_every_n_checkpoints,
+            val_every_n_checkpoints,
+            save_path,
+            save_path_ema,
+            load_path,
+            load_path_ema,
+            state_save_path,
+            ema_scheduler=None
+            ):
         self.loss_fn = loss
         self.netG = network
         self.ema_scheduler = None
 
         self.main_loader = main_loader
         self.val_loader = val_loader
+        self.batch_size = batch_size
+        self.max_epochs = max_epochs
+        self.max_steps = max_steps
+        self.save_every_n_checkpoints = save_every_n_checkpoints
+        self.val_every_n_checkpoints = val_every_n_checkpoints
+        self.save_path = save_path
+        self.save_path_ema = save_path_ema
+        self.load_path = load_path
+        self.load_path_ema = load_path_ema
+        self.state_save_path = state_save_path
 
         self.device = device
         self.schedulers = []
         self.optimizers = []
-        self.metrics = []
         self.sample_num = sample_num
         self.task = task
-        self.phase = phase
-        self.batch_size = batch_size
         self.epoch = 0
         self.step = 0
         self.results_dict = CustomResult([], [])
@@ -74,9 +92,7 @@ class Palette:
 
         self.load_networks()
 
-        self.optG = torch.optim.Adam(
-            list(filter(lambda p: p.requires_grad, self.netG.parameters())), **optimizers[0])
-
+        self.optG = optimizer
         self.optimizers.append(self.optG)
         self.netG.set_loss(self.loss_fn)
         self.netG.set_new_noise_schedule(phase=self.phase)
@@ -96,15 +112,15 @@ class Palette:
         # self.batch_size = len(data['path'])
 
     def train(self):
-        while self.epoch <= max_epochs and self.step <= max_steps:
+        while self.epoch <= self.max_epochs and self.step <= self.max_steps:
             self.epoch += 1
 
             self.train_step()
 
-            if self.epoch % save_every_n_checkpoints == 0:
+            if self.epoch % self.save_every_n_checkpoints == 0:
                 self.save_everything()
 
-            if self.epoch % val_every_n_checkpoints == 0:
+            if self.epoch % self.val_every_n_checkpoints == 0:
                 if self.val_loader is None:
                     pass
                 else:
@@ -123,10 +139,10 @@ class Palette:
             loss.backward()
             self.optG.step()
 
-            self.iter += self.batch_size
+            self.step += self.batch_size
 
             if self.ema_scheduler is not None:
-                if self.iter > self.ema_scheduler['ema_start'] and self.iter % self.ema_scheduler['ema_iter'] == 0:
+                if self.step > self.ema_scheduler['ema_start'] and self.step % self.ema_scheduler['ema_step'] == 0:
                     self.EMA.update_model_average(self.netG_EMA, self.netG)
 
         for scheduler in self.schedulers:
@@ -157,28 +173,36 @@ class Palette:
                     self.source_image,
                     sample_num=self.sample_num
                 )
-                self.iter += self.batch_size
+                self.step += self.batch_size
 
     def load_networks(self):
         netG_label = self.netG.__class__.__name__
-        self.__load_network(network=self.netG,
-                            network_label=netG_label, strict=False)
-        if self.ema_scheduler is not None:
-            self.__load_network(network=self.netG_EMA,
-                                network_label=netG_label+'_ema', strict=False)
 
-    def __load_network(self, network, network_label, strict=True):
-        if resume_path is None:
+        self.__load_network(
+            network=self.netG,
+            network_label=netG_label, 
+            strict=False
+        )
+
+        if self.ema_scheduler is None:
             return
+        
+        self.__load_network(
+            network=self.netG_EMA,
+            ema = True,
+            strict=False
+        )
 
-        model_path = f"{resume_path}_{network_label}.pth"
-
-        if not os.path.exists(model_path):
+    def __load_network(self, network, ema = False, strict=True):
+        if load_path is None or not os.path.exists(load_path):
             return
+        
+        if ema:
+            load_path = self.load_path_ema
 
         network.load_state_dict(
             torch.load(
-                model_path,
+                load_path,
                 map_location=lambda storage,
                 loc: Util.set_device(storage)
             ),
@@ -186,29 +210,18 @@ class Palette:
         )
 
     def save_everything(self):
-        """ load pretrained model and training state. """
-
-        netG_label = self.netG.__class__.__name__
-
-        self.__save_network(network=self.netG, network_label=netG_label)
+        self.__save_network(network=self.netG)
 
         if self.ema_scheduler is not None:
-            self.__save_network(network=self.netG_EMA,
-                                network_label=netG_label+'_ema')
+            self.__save_network(network=self.netG_EMA, ema = True)
 
         self.__save_training_state()
 
-    def __save_network(self, network, network_label):
-        """ save network structure, only work on GPU 0 """
-        if global_rank != 0:
-            return
+    def __save_network(self, network, ema = False):
 
-        save_filename = f'{self.epoch}_{network_label}.pth'
-        save_path = os.path.join(checkpoint_path, save_filename)
-
-        # if isinstance(network, nn.DataParallel) or isinstance(network, nn.parallel.DistributedDataParallel):
-        #     network = network.module
-
+        if ema:
+            save_path = self.save_path_ema
+        
         state_dict = network.state_dict()
         for key, param in state_dict.items():
             state_dict[key] = param.cpu()
@@ -216,15 +229,15 @@ class Palette:
         torch.save(state_dict, save_path)
 
     def __save_training_state(self):
-        """ saves training state during training, only work on GPU 0 """
-        if global_rank != 0:
-            return
 
-        assert isinstance(self.optimizers, list) and isinstance(
-            self.schedulers, list), 'optimizers and schedulers must be a list.'
+        assert isinstance(self.optimizers, list) and isinstance(self.schedulers, list), 'optimizers and schedulers must be a list.'
 
-        state = {'epoch': self.epoch, 'step': self.step,
-                 'schedulers': [], 'optimizers': []}
+        state = {
+            'epoch': self.epoch,
+            'step': self.step,
+            'schedulers': [], 
+            'optimizers': []
+        }
 
         for s in self.schedulers:
             state['schedulers'].append(s.state_dict())
@@ -232,9 +245,9 @@ class Palette:
         for o in self.optimizers:
             state['optimizers'].append(o.state_dict())
 
-        save_filename = f'{self.epoch}.state'
-        save_path = os.path.join(checkpoint_path, save_filename)
-        torch.save(state, save_path)
+        save_filename = self.state_save_path.format(epoch=self.epoch)
+
+        torch.save(state, save_filename)
 
     def get_current_visuals(self, phase='train'):
         dict = {
