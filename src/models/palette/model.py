@@ -150,8 +150,8 @@ class Palette:
     def test(self):
         self.netG.eval()
         with torch.no_grad():
-            for phase_data in tqdm.tqdm(self.main_loader):
-                self.set_input(phase_data)
+            for batch in tqdm.tqdm(self.main_loader):
+                self.set_input(batch)
 
                 # if self.task in ['inpainting', 'uncropping']:
                 #     self.output, self.visuals = self.netG.restoration(
@@ -173,8 +173,6 @@ class Palette:
                 self.step += self.batch_size
 
     def load_networks(self):
-        netG_label = self.netG.__class__.__name__
-
         self.__load_network(
             network=self.netG,
             strict=False
@@ -247,7 +245,7 @@ class Palette:
 
         torch.save(state, save_filename)
 
-    def get_current_visuals(self, phase='train'):
+    def get_current_visuals(self):
         dict = {
             'target_image': (self.target_image.detach()[:].float().cpu()+1)/2,
             'source_image': (self.source_image.detach()[:].float().cpu()+1)/2,
@@ -257,7 +255,7 @@ class Palette:
         #         'mask': self.mask.detach()[:].float().cpu(),
         #         'mask_image': (self.mask_image+1)/2,
         #     })
-        if phase != 'train':
+        if self.phase != 'train':
             dict.update({
                 'output': (self.output.detach()[:].float().cpu()+1)/2
             })
