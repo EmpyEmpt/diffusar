@@ -73,11 +73,11 @@ def set_seed(seed, gl_seed=0):
 		np.random.seed(seed)
 		random.seed(seed)
 
-	# ''' change the deterministic and benchmark maybe cause uncertain convolution behavior. 
-	# 	speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html '''
-	# if seed >= 0 and gl_seed >= 0:  # slower, more reproducible
-	# 	torch.backends.cudnn.deterministic = True
-	# 	torch.backends.cudnn.benchmark = False
-	# else:  # faster, less reproducible
-	# 	torch.backends.cudnn.deterministic = False
-	# 	torch.backends.cudnn.benchmark = True
+	''' change the deterministic and benchmark maybe cause uncertain convolution behavior. 
+		speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html '''
+	if seed >= 0 and gl_seed >= 0:  # slower, more reproducible
+		torch.backends.cudnn.deterministic = True
+		torch.backends.cudnn.benchmark = False
+	else:  # faster, less reproducible
+		torch.backends.cudnn.deterministic = False
+		torch.backends.cudnn.benchmark = True

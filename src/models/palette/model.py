@@ -74,34 +74,27 @@ class Palette:
         self.step = 0
         self.results_dict = CustomResult([], [])
 
+        self.netG = self.netG.to(self.device)
+        
         if ema_scheduler is not None:
             self.ema_scheduler = ema_scheduler
             self.netG_EMA = copy.deepcopy(self.netG)
             self.EMA = EMA(beta=self.ema_scheduler['ema_decay'])
 
-        if self.device == 'gpu':
-            self.netG = self.netG.cuda()
-
         if self.ema_scheduler is not None:
-            if self.device == 'gpu':
-                self.netG_EMA = self.netG_EMA.cuda()
+            self.netG_EMA = self.netG_EMA.to(self.device)
 
         self.load_networks()
 
         self.optG = optimizer
         self.optimizers.append(self.optG)
         self.netG.set_loss(self.loss_fn)
-        # self.netG.set_new_noise_schedule(phase=self.phase)
-        self.netG.set_new_noise_schedule(device = torch.device('cpu'))
+        self.netG.set_new_noise_schedule(device = self.device)
 
     def set_input(self, data):
         ''' must use set_device in tensor '''
-        self.source_image = data.get('source_image')
-        self.target_image = data.get('target_image')
-
-        if self.device == 'gpu':
-            self.source_image = self.source_image.cuda()
-            self.target_image = self.target_image.cuda()
+        self.source_image = data.get('source_image').to(self.device)
+        self.target_image = data.get('target_image').to(self.device)
 
         # self.mask = self.set_device(data.get('mask'))
         # self.mask_image = data.get('mask_image')

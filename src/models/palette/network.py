@@ -10,19 +10,14 @@ from core.base_network import BaseNetwork
 class Network(BaseNetwork):
     def __init__(self, unet, beta_schedule, init_type='kaiming', gain=0.02):
         super(Network, self).__init__(init_type, gain)
-        # if module_name == 'sr3':
-        #     from .sr3_modules.unet import UNet
-        # elif module_name == 'guided_diffusion':
-        #     from .guided_diffusion_modules.unet import UNet
-
-        # self.denoise_fn = UNet(**unet)
+        
         self.denoise_fn = unet
         self.beta_schedule = beta_schedule
 
     def set_loss(self, loss_fn):
         self.loss_fn = loss_fn
 
-    def set_new_noise_schedule(self, device=torch.device('cuda'), phase='train'):
+    def set_new_noise_schedule(self, device):
 
         to_torch = partial(torch.tensor, dtype=torch.float32, device=device)
 

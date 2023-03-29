@@ -1,9 +1,11 @@
 import yaml
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning import seed_everything
 import pytorch_lightning as pl
 from palette.model import Palette
 import utils
+import torch
 
 # Configs
 config = yaml.safe_load(open('./config.yaml'))
@@ -78,12 +80,14 @@ annotations_path: str           = config['dataset']['annotations_path']
 
 def main():
     # torch.backends.cudnn.enabled = True
-    utils.set_seed(seed)
+    seed_everything(seed)
 
     network = utils.get_network(unet_name, unet_args, scheduler_args)
     optimizer = utils.get_optimizer(network, optimizer_name, optimizer_args)
     loss_fn = utils.get_loss_fn()
     dataloader = utils.get_dataloader(images_path, annotations_path, dataloader_workers, batch_size)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = Palette(
         network = network, 
@@ -93,6 +97,7 @@ def main():
         val_loader=None,
         ema_scheduler=ema_scheduler,
         phase = 'train',
+        device = device,
         **training_args,
         **paths
     )
