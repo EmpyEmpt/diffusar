@@ -1,9 +1,9 @@
 models:
-  download_url: https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt
-  original_path: "./models/v2-1-pruned-ema.ckpt"
-  control_path: "./models/control_v2-1_ini.ckpt"
-  cldm_path: "./models/cldm_v21.yaml"
-  last_path: "./models/ckeckpoints/last.ckpt"
+  save_path: './models/checkpoints/save.pth'
+  save_path_ema: './models/checkpoints/save_ema.pth'
+  load_path: './models/checkpoints/load.pth'
+  load_path_ema: './models/checkpoints/load_ema.pth'
+  state_save_path: './models/checkpoints/{epoch}.state' # in format of '*folder/{epoch}.state'
 
 dataset:
   images_dir: "./data/images/"
@@ -11,13 +11,19 @@ dataset:
   coco_path: "./data/captions_train2017.json"
 
 training:
-  model:
-    sd_locked: True
-    only_mid_control: False
+  model_config_path: './models/model_config.yaml'
+  training_args:
+    max_epochs: 100
+    max_steps: 100
+    save_every_n_checkpoints: 10
+    val_every_n_checkpoints: 10
+    task: 'Restoration'
+    device: 'cpu'
+    sample_num: 8
   dataloader:
     batch_size: 16
     dataloader_workers: 4
-    learning_rate: 1e-4
+    learning_rate: 0.0001 #1e-4
   trainer: 
     precision: 16
     accumulate_grad_batches: 4
@@ -38,11 +44,11 @@ callbacks:
 wandb:
   use: True
   project_name: "Diffusar"
-  name: "ControlNet-SD2.1"
+  name: "Palette"
   log_model: True
   log: "all"
   log_freq: 300
 
 misc:
   image_size: 512
-  saving_memory: False
+  seed: 42

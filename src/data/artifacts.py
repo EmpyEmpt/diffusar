@@ -1,3 +1,5 @@
+# TODO: Random noise patch artifact
+# TODO: Random discoloration
 from skimage.util import random_noise
 import numpy as np
 import cv2

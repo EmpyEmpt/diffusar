@@ -31,8 +31,10 @@ def main() -> None:
         jimg = {}
         jimg['file_path'] = img['file_name']
         jimg['id'] = imgid
-        jimg['captions'] = [a['caption'] for a in itoa[imgid]]
-        jimg['coco_url'] = img['coco_url']
+        # For Palette we are not using any captions
+        # jimg['captions'] = [a['caption'] for a in itoa[imgid]]
+        jimg['captions'] = ['No caption']
+        jimg['url'] = img['coco_url']
 
         out.append(jimg)
 
@@ -44,7 +46,7 @@ def main() -> None:
                 'target': entry['file_path'],
                 'prompt': caption,
                 'source': '',
-                'coco_url': entry['coco_url']
+                'url': entry['url']
             })
 
     # Save

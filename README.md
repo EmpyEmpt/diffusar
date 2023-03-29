@@ -2,7 +2,7 @@
 
 Image restoration using diffusions!
 
-The plan is to train diffusion model *(ControlNet for now)* to reconstuct images, remove artifacts, noise etc.
+The plan is to train diffusion model (Palette) to reconstuct images, remove artifacts, noise etc.
 
 ## How to use
 
@@ -10,14 +10,16 @@ TBA!
 
 ## Architecture
 
-Planning to use ControlNet!
+Planning to use Palette!
 Everything else is TBA!
 
 ## Related resources
 
-[ControlNet GitHub page](https://github.com/lllyasviel/ControlNet)  
-[Instruct-pix2pix](https://github.com/timothybrooks/instruct-pix2pix)
+[Unofficial Palette](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models)
+[Paper](https://arxiv.org/pdf/2111.05826.pdf)
 
-<https://huggingface.co/docs/diffusers/main/en/training/instructpix2pix>
-<https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py>
+## Useful links
+
+<https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models/issues/17>
 <https://github.com/huggingface/diffusers/tree/main/examples/instruct_pix2pix>
+<https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py>
