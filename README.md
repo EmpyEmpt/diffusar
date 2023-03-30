@@ -17,6 +17,7 @@ Somewhat sorted by a significance level
   - [ ] Heavy corruptions
   - [ ] More noise types!
   - [ ] Cropping *(inpainting / outpainting)*
+  - [ ] GAN corruptions *(as in [DiffGAR](https://arxiv.org/pdf/2210.08573.pdf) paper)*
 - [ ] Add more datasets *(ideas for datasets)*
   - [x] [COCO](https://paperswithcode.com/dataset/coco) (Precisely a captioning 2017 subset)
   - [ ] [ImageNet](https://paperswithcode.com/dataset/imagenet) *(Might be too big though, but is still a good all round dataset )*
