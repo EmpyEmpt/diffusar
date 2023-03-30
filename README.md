@@ -45,9 +45,9 @@ More details are **TBA**!
 
 ## Related resources
 
-[Unofficial Palette](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models)
-[Paper](https://arxiv.org/pdf/2111.05826.pdf)
-[Diffusers 🧨 on instuct-pix2pix](https://github.com/huggingface/diffusers/tree/main/examples/instruct_pix2pix)
-[Training of instruct-pix2pix](https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py)
-[annotated diffusion blog-post](https://huggingface.co/blog/annotated-diffusion)
-[denoising-diffusion repository](https://github.com/lucidrains/denoising-diffusion-pytorch)
+[Unofficial Palette](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models)  
+[Paper](https://arxiv.org/pdf/2111.05826.pdf)  
+[Diffusers 🧨 on instuct-pix2pix](https://github.com/huggingface/diffusers/tree/main/examples/instruct_pix2pix)  
+[Training of instruct-pix2pix](https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py)  
+[annotated diffusion blog-post](https://huggingface.co/blog/annotated-diffusion)  
+[denoising-diffusion repository](https://github.com/lucidrains/denoising-diffusion-pytorch)  
