@@ -23,10 +23,20 @@ class EMA():
 
 
 class Diffusar(LightningModule):
-    def __init__(self, unet_name, unet_args, scheduler_args, ema_scheduler, optimizer_name, optimizer_args, batch_size, loss_name):
+    def __init__(self, unet_name, unet_args, scheduler_args, ema_scheduler, optimizer_name, optimizer_args, loss_name, batch_size=1):
         super().__init__()
 
-        self.network = utils.get_network(unet_name, unet_args, scheduler_args)
+        self.unet_name = unet_name
+        self.unet_args = unet_args
+        self.scheduler_args = scheduler_args
+        self.ema_scheduler = ema_scheduler
+        self.optimizer_name = optimizer_name
+        self.optimizer_args = optimizer_args
+        self.loss_name = loss_name
+        self.batch_size = batch_size
+
+        self.network = utils.get_network(
+            self.unet_name, self.unet_args, self.scheduler_args)
         self.network.init_weights()
         self.loss_fn = utils.get_loss_fn(loss_name)
 
@@ -79,17 +89,18 @@ class Diffusar(LightningModule):
         # self.log('val_loss', loss)
         pass
 
-    def predict(self, batch, batch_idx):
-        pass
-
     def predict_step(self, batch, batch_idx):
-        pass
+        out = []
+        for im in batch:
+            y_t, ret_arr = self.network.restoration(im)
+            out.append([y_t, ret_arr])
+        return out
 
     def save_checkpoint(self, filepath):
         self.__save_network(network=self.network, filepath=filepath)
 
         if self.ema_scheduler is not None:
-            self.__save_network(network=self.network_ema,
+            self.__save_network(network=self.network_EMA,
                                 filepath=filepath + '.ema')
 
     def __save_network(self, network, filepath):
@@ -112,7 +123,7 @@ class Diffusar(LightningModule):
             return
 
         self.__load_network(
-            network=self.network_ema,
+            network=self.network_EMA,
             strict=False,
             filepath=filepath + '.ema'
         )

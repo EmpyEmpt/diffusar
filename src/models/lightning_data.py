@@ -3,6 +3,8 @@ import sys
 sys.path.insert(0, './src/data')
 from make_dataset import ArtifactDataset
 import torch.utils.data as data
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
 from pytorch_lightning import LightningDataModule
 
 
@@ -45,3 +47,27 @@ class DiffusarData(LightningDataModule):
         if self.val_dataset is None:
             return None
         return data.DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.dataloader_workers)
+
+class InferenceData(LightningDataModule):
+    def __init__(self, images_path, batch_size, dataloader_workers = 1):
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.dataloader_workers = dataloader_workers
+
+        self.images_path = images_path
+
+        self.tfs = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((256, 256)),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
+
+    def setup(self, stage):
+        self.dataset = ImageFolder(
+            root=self.images_path,
+            transform=self.tfs
+        )
+
+    def predict_dataloader(self):
+        return data.DataLoader(self.dataset, batch_size=self.batch_size, num_workers=self.dataloader_workers)
