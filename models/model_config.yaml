@@ -38,3 +38,6 @@ optimizer:
   optimizer_args:
     lr: 0.00005 #5e-5
     weight_decay: 0
+
+loss:
+  loss_name: 'mse'

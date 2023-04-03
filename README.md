@@ -11,8 +11,9 @@ Somewhat sorted by a significance level
 
 - [x] Rewrite [Palette](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models) in more customizable, readable and human-understandable way
 - [x] Write a draft of inference script
-- [ ] Flesh out model training and inference
-- [ ] Translate model to [PyTorch Lightning ⚡](https://lightning.ai/docs/pytorch/stable/)
+- [x] Flesh out model training
+- [ ] Flesh out model inference
+- [x] Translate model to [PyTorch Lightning ⚡](https://lightning.ai/docs/pytorch/stable/)
 - [ ] Add more artifact types!
   - [ ] Heavy corruptions
   - [ ] More noise types!

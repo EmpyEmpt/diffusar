@@ -1,9 +1,6 @@
-models:
-  save_path: './models/checkpoints/save.pth'
-  save_path_ema: './models/checkpoints/save_ema.pth'
-  load_path: './models/checkpoints/load.pth'
-  load_path_ema: './models/checkpoints/load_ema.pth'
-  state_save_path: './models/checkpoints/{epoch}.state' # in format of '*folder/{epoch}.state'
+pahts:
+  save_path: './models/checkpoints/'
+  load_path: './models/checkpoints/'
 
 dataset:
   images_dir: "./data/images/"

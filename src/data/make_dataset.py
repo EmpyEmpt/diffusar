@@ -30,8 +30,8 @@ class ArtifactDataset(Dataset):
         self.image_size = image_size
 
         self.tfs = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
             transforms.ToTensor(),
+            transforms.Resize((image_size, image_size)),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ])
 
@@ -50,7 +50,6 @@ class ArtifactDataset(Dataset):
         # loading images
         target = cv2.imread(self.images_path + target_filename)
         target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
-        target = self.tfs(target)
         
         if self.dynamic_source:
             source = np.random.choice(random_artifact)(target, random_args=True)
@@ -59,6 +58,7 @@ class ArtifactDataset(Dataset):
             source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
 
         source = self.tfs(source)
+        target = self.tfs(target)
 
         ret = {
             'target_image': target,
