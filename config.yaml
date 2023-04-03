@@ -1,4 +1,4 @@
-pahts:
+paths:
   save_path: './models/checkpoints/'
   load_path: './models/checkpoints/'
 

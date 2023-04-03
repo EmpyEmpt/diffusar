@@ -1,8 +1,3 @@
-# I want to kill myself
-import sys
-sys.path.insert(0, './src/data')
-from make_dataset import ArtifactDataset
-
 from palette.network import Network
 
 def get_unet(unet_name, unet_args):
