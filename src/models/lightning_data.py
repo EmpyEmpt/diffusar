@@ -9,9 +9,10 @@ from pytorch_lightning import LightningDataModule
 
 
 class DiffusarData(LightningDataModule):
-    def __init__(self, train_images_path, train_annotations_path, batch_size, dataloader_workers, val_images_path=None, val_annotations_path=None):
+    def __init__(self, train_images_path, train_annotations_path, batch_size, dataloader_workers = 1, val_images_path=None, val_annotations_path=None, dynamic_source = True):
         super().__init__()
 
+        self.dynamic_source = dynamic_source
         self.batch_size = batch_size
         self.dataloader_workers = dataloader_workers
 
@@ -29,6 +30,7 @@ class DiffusarData(LightningDataModule):
         self.train_dataset = ArtifactDataset(
             images_path=self.train_images_path,
             annotations_path=self.train_annotations_path,
+            dynamic_source=self.dynamic_source
         )
 
         if self.val_images_path is None or self.val_annotations_path is None:
@@ -38,6 +40,7 @@ class DiffusarData(LightningDataModule):
         self.val_dataset = ArtifactDataset(
             images_path=self.val_images_path,
             annotations_path=self.val_annotations_path,
+            dynamic_source=self.dynamic_source
         )
 
     def train_dataloader(self):
@@ -60,7 +63,7 @@ class InferenceData(LightningDataModule):
         self.tfs = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize((256, 256)),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            transforms.Normalize(mean=[0., 0., 0.], std=[0.42, 0.42, 0.42])
         ])
 
     def setup(self, stage):

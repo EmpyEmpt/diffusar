@@ -14,6 +14,7 @@ random_artifact = [
     ar.apply_moire_pattern,
     ar.apply_noise,
     ar.apply_rainbow_effect,
+    ar.apply_black_rectangle,
     # ar.apply_screen_tearing
 ]
 
@@ -32,7 +33,7 @@ class ArtifactDataset(Dataset):
         self.tfs = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize((image_size, image_size)),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            transforms.Normalize(mean=[0., 0., 0.], std=[0.42, 0.42, 0.42])
         ])
 
         with open(self.annotations_path, 'r') as f:
@@ -46,13 +47,19 @@ class ArtifactDataset(Dataset):
         # loading string values
         source_filename = item['source']
         target_filename = item['target']
+        artifact_name = None
 
+        if source_filename == '' or self.dynamic_source:
+            dynamic_source = True
+        
         # loading images
         target = cv2.imread(self.images_path + target_filename)
         target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
         
-        if self.dynamic_source:
-            source = np.random.choice(random_artifact)(target, random_args=True)
+        if dynamic_source:
+            artifact = np.random.choice(random_artifact)
+            artifact_name = artifact.__name__
+            source = artifact(target, random_args=True)
         else:
             source = cv2.imread(self.images_path + source_filename)
             source = cv2.cvtColor(source, cv2.COLOR_BGR2RGB)
@@ -63,7 +70,10 @@ class ArtifactDataset(Dataset):
         ret = {
             'target_image': target,
             'source_image': source,
-            'path': source_filename
+            'source_filename': source_filename,
+            'target_filename': target_filename,
+            'dynamic_source': dynamic_source,
+            'artifact_name': artifact_name
         }
         return ret
     

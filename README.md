@@ -15,9 +15,8 @@ Somewhat sorted by a significance level
 - [ ] Flesh out model inference
 - [x] Translate model to [PyTorch Lightning ⚡](https://lightning.ai/docs/pytorch/stable/)
 - [ ] Add more artifact types!
-  - [ ] Heavy corruptions
-  - [ ] More noise types!
-  - [ ] Cropping *(inpainting / outpainting)*
+  - [x] More noise types!
+  - [x] Cropping *(inpainting / outpainting)* for training
   - [ ] GAN corruptions *(as in [DiffGAR](https://arxiv.org/pdf/2210.08573.pdf) paper)*
 - [ ] Add more datasets *(ideas for datasets)*
   - [x] [COCO](https://paperswithcode.com/dataset/coco) (Precisely a captioning 2017 subset)
