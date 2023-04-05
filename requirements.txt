@@ -1,16 +1,16 @@
+yaml
+numpy
+scikit-image
+scipy 
 tqdm
 Pillow
 wandb
+
 torch
 torchvision
-numpy
-gradio==3.16.2
-albumentations==1.3.0
-opencv-contrib-python
-pytorch_lightning==1.5.0
+pytorch_lightning
 
-pandas
-tqdm
-tensorboardX>=1.14
-scipy 
-clean-fid
+gradio
+albumentations
+opencv-contrib-python
+

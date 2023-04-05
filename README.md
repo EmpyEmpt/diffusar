@@ -1,4 +1,4 @@
-# Diffusar 🐳 - image resoration
+# Diffusar 🐳 - image restoration
 
 Image restoration using diffusions!
 
