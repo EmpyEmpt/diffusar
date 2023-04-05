@@ -2,23 +2,23 @@ unet:
   name: 'gd' # 'sr3' | 'gd'
   # this arguments won't work for 'sr3'
   unet_args:
-    image_size: 224
+    image_size: 512
     in_channel: 6
     inner_channel: 64
     out_channel: 3
-    res_blocks: 2
-    attn_res: [16]
+    res_blocks: 3
+    attn_res: [32]
     dropout : 0.2
     channel_mults : [1, 2, 4, 8]
     conv_resample : True
     use_checkpoint : False
     use_fp16 : False
-    num_heads : 1
-    num_head_channels : 32
+    num_heads : 32
+    num_head_channels : 64
     num_heads_upsample : -1
     use_scale_shift_norm : True
     resblock_updown : True
-    use_new_attention_order : False
+    use_new_attention_order : True
 
 scheduler_args:
   schedule: "linear"
