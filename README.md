@@ -51,3 +51,4 @@ More details are **TBA**!
 [Training of instruct-pix2pix](https://github.com/huggingface/diffusers/blob/main/examples/instruct_pix2pix/train_instruct_pix2pix.py)  
 [annotated diffusion blog-post](https://huggingface.co/blog/annotated-diffusion)  
 [denoising-diffusion repository](https://github.com/lucidrains/denoising-diffusion-pytorch)  
+[Kandinsky 2.1 post](https://habr.com/ru/companies/sberbank/articles/725282/)
