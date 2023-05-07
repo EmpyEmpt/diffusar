@@ -1,26 +1,26 @@
 paths:
   save_path: './models/checkpoints/' #Need to be added
   load_path: './models/checkpoints/last.ckpt'
+  secrets_path: './secrets/secrets.yaml'
 
 dataset:
   images_dir: "./data/images/"
   annotations_path: "./data/prompt.json"
-  
   coco_path: "./data/captions_train2017.json"
 
 training:
   model_config_path: './models/model_config.yaml'
   task: 'Restoration'
   dataloader:
-    batch_size: 16
+    batch_size: 2
     dataloader_workers: 8
     learning_rate: 0.0001 #1e-4
   trainer: 
     precision: 32
-    # accumulate_grad_batches: 1
-    accelerator: 'cpu'
+    accumulate_grad_batches: 8
+    accelerator: 'gpu'
     max_steps: -1
-    max_epochs: 100
+    max_epochs: 3
     limit_val_batches: 0
 callbacks:
   model_checkpoint:
@@ -29,7 +29,9 @@ callbacks:
     save_last: True
     save_weights_only: False
     save_top_k: 3
-    monitor: 'train/loss'
+    monitor: 'train_loss'
+  telegram_tqdm:
+    use: False
 
 wandb:
   use: True
@@ -40,5 +42,5 @@ wandb:
   log_freq: 50
 
 misc:
-  image_size: 512
+  image_size: 224
   seed: 42
