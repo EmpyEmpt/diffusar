@@ -251,7 +251,7 @@ def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussi
 
             Controls type of noise to be applied
 
-            Can be either `'gaussian'` | `'salt_peppet'`
+            Can be either `'gaussian'` | `'salt_peppet'` | `'pixels'`
 
         - mean : `float`, default: `0`
 
@@ -264,13 +264,14 @@ def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussi
     """
 
     if random_args:
-        mean, var = random_arguments(
+        mean, var, minmax = random_arguments(
             [
                 [float, -128, 128],
-                [float, 0, 0.1]
+                [float, 0, 0.1],
+                [int, 8, 64]
             ]
         )
-        noise_type = np.random.choice(['gaussian', 'salt_pepper'])
+        noise_type = np.random.choice(['gaussian', 'salt_pepper', 'pixels'])
 
     processed_image = source.copy()
     if noise_type == 'gaussian':
@@ -278,6 +279,8 @@ def apply_noise(source: np.ndarray, random_args: bool = True, noise_type='gaussi
         processed_image = np.clip(source + noise, 0, 255).astype(np.uint8)
     elif noise_type == 'salt_pepper':
         processed_image = random_noise(source, mode='s&p', amount=0.05)
+    elif noise_type == 'pixels':
+        processed_image = source + np.random.randint(-minmax, minmax, source.shape).astype(np.uint8)
 
     return processed_image
 

@@ -2,6 +2,7 @@ import json
 import cv2
 import numpy as np
 import artifacts as ar
+import torch
 from torchvision import transforms
 
 from torch.utils.data import Dataset
@@ -66,6 +67,8 @@ class ArtifactDataset(Dataset):
 
         source = self.tfs(source)
         target = self.tfs(target)
+        source = source.to(torch.float32)
+        target = target.to(torch.float32)
 
         ret = {
             'target_image': target,

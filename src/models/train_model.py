@@ -4,13 +4,19 @@ from pytorch_lightning import Trainer
 from pytorch_lightning import seed_everything
 import lightning_model as lm
 import lightning_data as ld
+import lightning_progress_bar as lpb
+import wandb
 import yaml
 
 
 # Configs
 config = yaml.safe_load(open('./config.yaml'))
+
 model_config = config['training']['model_config_path']
 model_config = yaml.safe_load(open(model_config))
+
+secrets = config['path']['secrets_path']
+secrets = yaml.safe_load(open(secrets))
 
 #   Unet
 unet_name: str = model_config['unet']['name']
@@ -43,7 +49,15 @@ images_path: str = config['dataset']['images_dir']
 annotations_path: str = config['dataset']['annotations_path']
 
 #   Callbacks
+callbacks = []
 ckpt_callback_args: dict = config['callbacks']['model_checkpoint']
+
+if config['callbacks']['telegram_tqdm']['use']:
+    chat_id = secrets['telegram_tqdm']['chat_id']
+    token = secrets['telegram_tqdm']['tg_token']
+    progress_bar = lpb.TelegramProgressBar(chat_id, token)
+    callbacks.append(progress_bar)
+
 
 #   Misc things
 paths: dict = config['paths']
@@ -74,6 +88,7 @@ if __name__ == '__main__':
     )
 
     #   Wandb logger callback
+    wandb.login(key = secrets['wandb']['wandb_key'])
     logger = WandbLogger(
         log_model=config['wandb']['log_model'],
         project=config['wandb']['project_name'],
@@ -90,16 +105,17 @@ if __name__ == '__main__':
     checkpoint_callback = ModelCheckpoint(
         **ckpt_callback_args
     )
+    callbacks.append(checkpoint_callback)
 
     #   Trainer
     trainer = Trainer(
         logger=logger,
-        callbacks=checkpoint_callback,
+        callbacks=callbacks,
         **trainer_args
     )
 
-    trainer.logger.experiment.log(config)
-    trainer.logger.experiment.log(model_config)
+    logger.experiment.config['model_config'] = model_config
+    logger.experiment.config['config'] = config
 
     model.train()
     trainer.fit(model=model, datamodule=datamodule)
