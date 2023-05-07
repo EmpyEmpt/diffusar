@@ -180,7 +180,7 @@ class Network(nn.Module):
             total=self.num_timesteps
         ):
 
-            t = torch.full((b,), i, device=y_cond.device, dtype=torch.long)
+            t = torch.full((b,), i, device=y_cond.device)
 
             y_t = self.p_sample(y_t, t, y_cond=y_cond)
 
